@@ -22,75 +22,36 @@ class TitForTat(Strategy):
         #if opponent cooperated on last move, cooperate
         #if opponent stole on last move, steal
         if not logs:
-            return COOPERATE            
-        elif logs[-1][-1] == COOPERATE:
+            return COOPERATE 
+        turn = 0 if logs[0][0][0] == type(self).__name__ else 1
+        if logs[-1][turn][1] == COOPERATE:
             return COOPERATE
-        elif logs[-1][-1] == STEAL:
+        if logs[-1][turn][1] == STEAL:
             return STEAL
-    
-class TitForTwoTats(Strategy):
-    #cooperate on first move
-    #if opponent cooperated on last move or second to last move, cooperate
-    #else steal
-    def make_move(self, logs):
-        if not logs:
-            return COOPERATE
-        elif len(logs) == 1:
-            return COOPERATE
-        elif logs[-1][1] == COOPERATE or logs[-2][1] == COOPERATE:
-            return COOPERATE
-        return STEAL
-    
-class Grudger(Strategy):
-    #store if opponent ever stole
-    def __init__(self):
-        self.stole = False
 
-    #cooperate on first move
-    #if opponent ever steals, steal for the rest of the game
-    def make_move(self, logs):
-        if not logs:
-            return COOPERATE
-        elif self.stole:
-            return STEAL
-        elif logs[-1][1] == STEAL:
-            self.stole = True
-            return STEAL
-        return COOPERATE
-    
 class Random(Strategy):
-    #randomly choose to cooperate or steal
     def make_move(self, logs):
         return random.choice([COOPERATE, STEAL])
     
-class Pavlov(Strategy):
+class TitForTwoTats(Strategy):
     def make_move(self, logs):
-        if not logs or (logs[-1][0] == COOPERATE and logs[-1][1] == COOPERATE):
-            return COOPERATE
-        else:
-            return not logs[-1][0]
-
-class Adaptive(Strategy):
-    def make_move(self, logs):
-        cooperate_count = sum(1 for log in logs if log[1] == COOPERATE)
-        steal_count = len(logs) - cooperate_count
-        if cooperate_count >= steal_count:
-            return COOPERATE
-        else:
-            return STEAL
-
-class SuspiciousTitForTat(Strategy):
-    def make_move(self, logs):
-        if not logs:
-            return STEAL
-        else:
-            return logs[-1][1]
-
-class Forgiving(Strategy):
-    def make_move(self, logs):
+        #cooperate on first move
+        #if opponent cooperated on last two moves, cooperate
+        #if opponent stole on last two moves, steal
         if not logs:
             return COOPERATE
-        if logs[-1][1] == STEAL:
-            # 10% chance to forgive
-            return random.choice([COOPERATE] * 1 + [STEAL] * 9)
-        return COOPERATE
+        turn = 0 if logs[0][0][0] == type(self).__name__ else 1
+        if len(logs) < 2:
+            if logs[-1][turn][1] == COOPERATE:
+                return COOPERATE
+            if logs[-1][turn][1] == STEAL:
+                return STEAL
+        if logs[-1][turn][1] == COOPERATE and logs[-2][turn][1] == COOPERATE:
+            return COOPERATE
+        if logs[-1][turn][1] == STEAL and logs[-2][turn][1] == STEAL:
+            return STEAL
+        
+           
+
+
+#[([name1, move1], [name2, move2])]
